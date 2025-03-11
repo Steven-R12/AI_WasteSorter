@@ -32,7 +32,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.classifier.parameters(), lr=0.0001)
 
 # Train the model
-num_epochs = 10
+num_epochs = 13
 for epoch in range(num_epochs):
     model.train()
     running_loss, correct, total = 0, 0, 0
