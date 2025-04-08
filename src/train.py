@@ -3,6 +3,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import torch.nn as nn
+from torch.utils.tensorboard import SummaryWriter
 from model import get_model
 
 # Device configuration
@@ -16,7 +17,7 @@ transform = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-# Load dataset (Modify paths accordingly)
+# Load dataset
 train_data = datasets.ImageFolder('dataset/train', transform=transform)
 val_data = datasets.ImageFolder('dataset/val', transform=transform)
 
@@ -31,13 +32,16 @@ model = get_model(num_classes=3).to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.classifier.parameters(), lr=0.0001)
 
+# TensorBoard writer
+writer = SummaryWriter()
+
 # Train the model
 num_epochs = 13
 for epoch in range(num_epochs):
     model.train()
     running_loss, correct, total = 0, 0, 0
 
-    for inputs, labels in train_loader:
+    for i, (inputs, labels) in enumerate(train_loader):
         inputs, labels = inputs.to(device), labels.to(device)
 
         optimizer.zero_grad()
@@ -51,8 +55,13 @@ for epoch in range(num_epochs):
         correct += torch.sum(preds == labels).item()
         total += labels.size(0)
 
+        # ✅ Log loss after every batch
+        writer.add_scalar('Loss/train', loss.item(), epoch * len(train_loader) + i)
+
+    # ✅ Print epoch loss and accuracy
     train_accuracy = correct / total * 100
     print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/total:.4f}, Accuracy: {train_accuracy:.2f}%")
 
+# Save model
 torch.save(model.state_dict(), "waste_sorter.pth")
-
+writer.close()
