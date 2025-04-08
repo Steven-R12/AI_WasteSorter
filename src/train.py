@@ -18,8 +18,8 @@ transform = transforms.Compose([
 ])
 
 # Load dataset
-train_data = datasets.ImageFolder('dataset/train', transform=transform)
-val_data = datasets.ImageFolder('dataset/val', transform=transform)
+train_data = datasets.ImageFolder('/content/AI_WasteSorter/dataset/train', transform=transform)
+val_data = datasets.ImageFolder('/content/AI_WasteSorter/dataset/val', transform=transform)
 
 # Dataloaders
 train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
@@ -55,13 +55,16 @@ for epoch in range(num_epochs):
         correct += torch.sum(preds == labels).item()
         total += labels.size(0)
 
-        # ✅ Log loss after every batch
-        writer.add_scalar('Loss/train', loss.item(), epoch * len(train_loader) + i)
-
-    # ✅ Print epoch loss and accuracy
+    # Calculate average loss for this epoch
+    epoch_loss = running_loss / total
     train_accuracy = correct / total * 100
-    print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/total:.4f}, Accuracy: {train_accuracy:.2f}%")
 
-# Save model
+    # Log loss per epoch (to TensorBoard)
+    writer.add_scalar('Loss/train', epoch_loss, epoch)
+
+    # Print epoch stats
+    print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}, Accuracy: {train_accuracy:.2f}%")
+
+# Save the trained model
 torch.save(model.state_dict(), "waste_sorter.pth")
 writer.close()
